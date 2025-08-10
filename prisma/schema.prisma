@@ -26,6 +26,11 @@ enum CategoryNames {
   OTHER
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model App {
   id          String     @id @default(cuid())
   url         String     @unique
@@ -34,17 +39,19 @@ model App {
   pricing     Pricing
   imageUrl    String?
   isApproved  Boolean    @default(false)
+  featured    Boolean    @default(false)
   userId      String?
   submittedBy User?      @relation(fields: [userId], references: [id])
   categories  Category[]
   votes       Vote[]
+  upvotes     Int        @default(0)
   createdAt   DateTime   @default(now()) @map(name: "created_at")
   updatedAt   DateTime   @updatedAt @map(name: "updated_at")
-  bookmarks    Bookmark[]
+  bookmarks   Bookmark[]
 }
 
 model Category {
-  id   String       @id @default(cuid())
+  id   String        @id @default(cuid())
   name CategoryNames @unique
   apps App[]
 }
@@ -55,13 +62,15 @@ model User {
   email         String?    @unique
   emailVerified DateTime?
   image         String?
+  password      String?
+  role          UserRole   @default(USER)
   createdAt     DateTime   @default(now()) @map(name: "created_at")
   updatedAt     DateTime   @updatedAt @map(name: "updated_at")
   submissions   App[]
   votes         Vote[]
   accounts      Account[]
   sessions      Session[]
-  bookmarks      Bookmark[]
+  bookmarks     Bookmark[]
 
   @@map(name: "users")
 }
@@ -86,6 +95,30 @@ model Vote {
   appId  String
 
   @@unique([userId, appId])
+}
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  excerpt     String?
+  imageUrl    String?
+  published   Boolean  @default(false)
+  slug        String   @unique
+  authorId    String
+  author      User     @relation("BlogAuthor", fields: [authorId], references: [id])
+  createdAt   DateTime @default(now()) @map(name: "created_at")
+  updatedAt   DateTime @updatedAt @map(name: "updated_at")
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map(name: "created_at")
 }
 
 model Account {
